@@ -1,0 +1,97 @@
+# Reproducibilty
+seed: 42
+
+# Model 
+model_id: "runwayml/stable-diffusion-v1-5"
+
+# Categories
+categories:
+  - bottle
+  - metal_nut
+  - leather
+
+# Token
+token_V: "sks"      # product identity  -> Stage 1
+token_D: "xjy"      # defect appearance -> Stage 2
+
+# Paths
+paths:
+  mvtec_root:   "/kaggle/input/mvtec-ad"
+  output_root:  "/kaggle/working"
+  checkpoints:  "/kaggle/working/checkpoints"
+  generated:    "/kaggle/working/generated"
+  splits_dir:   "/kaggle/working/splits"
+  logs:         "/kaggle/working/logs"
+
+# Split dataset
+splits:
+  stage1_n_images: 25        # clean imgs for Stage 1
+  stage2_n_per_type: 10      # defect imgs per type for Stage 2
+                             # ablation: 5 / 10 / 20
+  stage2_ablation_shots: [5, 10, 20]
+
+# Stage 1 — DreamBooth + LoRA for [V] 
+stage1:
+  # Template prompt: "a photo of a {token_V} {category}"
+  # Prior prompt:    "a photo of a {category}"
+
+  lora_rank: 4               # rank r — we will try 8 if underfitting
+  lora_alpha: 32             # scaling: alpha/rank = 8 
+  target_modules:            # layers 
+    - "to_q"
+    - "to_k"
+    - "to_v"
+    - "to_out.0"
+
+  train_batch_size: 1        
+  gradient_accumulation_steps: 4   # effective batch size = 4
+  max_train_steps: 800       # ~800 steps is the standard DreamBooth range
+  learning_rate: 1.0e-4
+  lr_scheduler: "constant"   # "constant" or "cosine"
+  lr_warmup_steps: 0
+
+  prior_preservation: true
+  prior_loss_weight: 1.0
+  num_class_images: 100     
+
+  mixed_precision: "fp16"    
+  gradient_checkpointing: true  
+
+  save_steps: 200            # save checkpoint every N steps
+  validation_steps: 200      # generate validation samples every N steps
+  num_validation_images: 4   # images generated for validation
+
+# Stage 2 — LoRA for [D]
+stage2:
+  lora_rank: 4
+  lora_alpha: 32
+  target_modules:
+    - "to_q"
+    - "to_k"
+    - "to_v"
+    - "to_out.0"
+
+  train_batch_size: 1
+  gradient_accumulation_steps: 4
+  max_train_steps: 400
+  learning_rate: 5.0e-5      # lr is lower than Stage 1 to fine-tune defect details
+  lr_scheduler: "constant"
+  lr_warmup_steps: 0
+
+  mixed_precision: "fp16"
+  gradient_checkpointing: true
+  save_steps: 100
+
+# Inference
+inference:
+  num_inference_steps: 30
+  guidance_scale: 7.5
+  adapter_weight_V: 1.0      # Stage 1 adapter weight (to explore : 0.8–1.0)
+  adapter_weight_D: 0.8      # Stage 2 adapter weight (to explore: 0.6–1.0)
+  num_images_per_prompt: 8   # images generated per prompt
+
+# Wandb 
+wandb:
+  project: "defect-synthesis"
+  entity: null             
+  tags: ["stage1", "dreambooth", "lora", "mvtec"]
