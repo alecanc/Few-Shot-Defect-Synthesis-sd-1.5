@@ -16,7 +16,7 @@ token_D: "xjy"      # defect appearance -> Stage 2
 
 # Paths
 paths:
-  mvtec_root:   "/kaggle/input/mvtec-ad"
+  mvtec_root:   "/kaggle/working/data"
   output_root:  "/kaggle/working"
   checkpoints:  "/kaggle/working/checkpoints"
   generated:    "/kaggle/working/generated"
