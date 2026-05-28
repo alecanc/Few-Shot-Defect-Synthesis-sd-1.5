@@ -177,7 +177,7 @@ def train(cfg: dict, category: str):
         batch_size=stage_cfg["train_batch_size"],
         shuffle=True,
         collate_fn=collate_fn,
-        num_workers=2,
+        num_workers=0,
         pin_memory=True,
     )
 
@@ -329,33 +329,37 @@ def train(cfg: dict, category: str):
                 # Visual validation
                 if global_step % stage_cfg["validation_steps"] == 0:
                     if accelerator.is_main_process:
-                        val_pipeline = StableDiffusionPipeline.from_pretrained(
-                            model_id,
-                            unet=accelerator.unwrap_model(unet),
-                            torch_dtype=weight_dtype,
-                            safety_checker=None,
-                        ).to(accelerator.device)
+                        with torch.no_grad():
+                            unwrapped_unet = accelerator.unwrap_model(unet)
+                            if hasattr(unwrapped_unet, "basel_model"):
+                                unwrapped_unet = unwrapped_unet.basemodel.eval()
+                            val_pipeline = StableDiffusionPipeline.from_pretrained(
+                                model_id,
+                                unet=unwrapped_unet,
+                                torch_dtype=weight_dtype,
+                                safety_checker=None,
+                            ).to(accelerator.device)
 
-                        val_prompt = f"a photo of a {cfg['token_V']} {category}"
-                        val_images = generate_validation_images(
-                            pipeline=val_pipeline,
-                            prompt=val_prompt,
-                            num_images=stage_cfg["num_validation_images"],
-                            seed=seed,
-                            output_dir=ckpt_dir,
-                            step=global_step,
-                        )
+                            val_prompt = f"a photo of a {cfg['token_V']} {category}"
+                            val_images = generate_validation_images(
+                                pipeline=val_pipeline,
+                                prompt=val_prompt,
+                                num_images=stage_cfg["num_validation_images"],
+                                seed=seed,
+                                output_dir=ckpt_dir,
+                                step=global_step,
+                            )
 
-                        # Send images to wandb 
-                        wandb.log({
-                            "validation": [
-                                wandb.Image(img, caption=val_prompt)
-                                for img in val_images
-                            ],
-                            "step": global_step,
-                        })
+                            # Send images to wandb 
+                            wandb.log({
+                                "validation": [
+                                    wandb.Image(img, caption=val_prompt)
+                                    for img in val_images
+                                ],
+                                "step": global_step,
+                            })
 
-                        del val_pipeline
+                            del val_pipeline
                         torch.cuda.empty_cache()
 
             if global_step >= max_steps:
