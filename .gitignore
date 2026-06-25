@@ -1,3 +1,19 @@
 .DS_Store
 **/.DS_Store
 .ipynb_checkpoints/
+
+# ─── IDE / editor files ───
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── OS / system ───
+.directory
+*.tmp
+*.temp
+*.cache
