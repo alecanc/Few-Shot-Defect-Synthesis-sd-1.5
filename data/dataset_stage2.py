@@ -115,7 +115,7 @@ class Stage2Dataset(Dataset):
 
       Single-type mode (standard):
         Stage2Dataset(split_path, tokenizer, defect_type="broken_large")
-        - trains on up to `splits["stage2"]["broken_large"]` images
+        - trains on `splits["stage2"]["broken_large"]` images
 
       All-types mode (pooled):
         Stage2Dataset(split_path, tokenizer, defect_type=None)
