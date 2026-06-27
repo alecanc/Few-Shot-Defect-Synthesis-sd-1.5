@@ -132,7 +132,7 @@ class Stage2Dataset(Dataset):
     Args:
         split_path:   path to the category JSON produced by splits.py
         tokenizer:    CLIPTokenizer from SD 1.5
-        token_D:      special defect token (e.g. "xjy" from config.yaml)
+        token_D:      special defect token  ("xjy" from config.yaml)
         defect_type:  one defect type name, or None to pool all types
         image_size:   spatial resolution (512 for SD 1.5)
         augment:      enable stochastic augmentation
