@@ -26,9 +26,7 @@ paths:
 # Split dataset
 splits:
   stage1_n_images: 25        # clean imgs for Stage 1
-  stage2_n_per_type: 10      # defect imgs per type for Stage 2
-                             # ablation: 5 / 10 / 20
-  stage2_ablation_shots: [5, 10, 20]
+  stage2_n_per_type: 15      # defect imgs per type for Stage 2
 
 # Stage 1 — DreamBooth + LoRA for [V] 
 stage1:
@@ -63,8 +61,8 @@ stage1:
 
 # Stage 2 — LoRA for [D]
 stage2:
-  lora_rank: 4
-  lora_alpha: 32
+  lora_rank: 4              # a bit conservative, we will try 8 if underfitting
+  lora_alpha: 32            # scaling: alpha/rank = 8 a bit high since we got few-shot, but risks overfitting 
   target_modules:
     - "to_q"
     - "to_k"
@@ -73,7 +71,7 @@ stage2:
 
   train_batch_size: 1
   gradient_accumulation_steps: 4
-  max_train_steps: 400
+  max_train_steps: 300       # if overfit go less, if underfit higher
   learning_rate: 5.0e-5      # lr is lower than Stage 1 to fine-tune defect details
   lr_scheduler: "constant"
   lr_warmup_steps: 0
@@ -81,6 +79,8 @@ stage2:
   mixed_precision: "fp16"
   gradient_checkpointing: true
   save_steps: 100
+  validation_steps: 100
+  num_validation_images: 4
 
 # Inference
 inference:
@@ -94,4 +94,6 @@ inference:
 wandb:
   project: "defect-synthesis"
   entity: null             
-  tags: ["stage1", "dreambooth", "lora", "mvtec"]
+  #tags: ["stage1", "dreambooth", "lora", "mvtec"]
+  tags: ["dreambooth", "lora", "mvtec"]
+

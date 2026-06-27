@@ -289,7 +289,7 @@ def train(cfg: dict, category: str, defect_type: str):
 
                 # Text conditioning
                 with torch.no_grad():
-                    encoder_hidden_states = text_encoder(batch["input_ids"])[0]
+                    encoder_hidden_states = text_encoder(batch["input_ids"])[0]     # batch["input_ids"] is the pre-tokenize prompt tensor
 
                 # UNet noise prediction
                 model_pred = unet(
@@ -298,7 +298,7 @@ def train(cfg: dict, category: str, defect_type: str):
                     encoder_hidden_states,
                 ).sample
 
-                # Loss -> plain MSE
+                # Loss function MSE
                 # Every sample in the batch is a defect image, no batch splitting needed
                 loss = F.mse_loss(model_pred.float(), noise.float(), reduction="mean")
 
