@@ -94,29 +94,12 @@ def train(cfg: dict, category: str, defect_type: str):
     """
     Stage 2 training loop for one (category, defect_type) pair
 
-    Design choices and rationale:
+    Design choices and info:
       - Base model: vanilla SD 1.5
-        Following Kumari et al. (Multi-Concept Customization, CVPR 2023),
-        the two adapters are kept fully independent and composed only at
-        inference time. Training Stage 2 on top of Stage 1 weights would
-        entangle [D] with [V] representations.
 
-      - Loss: plain MSE on the full batch (no prior preservation).
-        Stage 2 has no language drift risk because we are not overwriting
-        a prior class concept — [D] is a novel token with no prior meaning
-
-      - validation_steps / num_validation_images: these keys are absent from
-        the stage2 section of config.yaml (Stage 1 had them, Stage 2 does not).
-        We fall back to hardcoded defaults: validate every 100 steps, 4 images.
-        OPTION: add these keys to config.yaml under stage2 to make them
-        configurable without touching the code.
+      - Loss: plain MSE on the full batch
 
       - Validation prompt: "a photo of a {token_D} defect on a surface"
-        This matches the training prompt exactly, so we see what [D] alone
-        generates — useful to verify the token is learning defect appearance.
-        OPTION: at inference you would use the composed prompt with [V]+[D],
-        but that requires loading both adapters simultaneously, which is
-        better handled in a dedicated inference/evaluation script.
     """
 
     ## Paths 
