@@ -286,14 +286,14 @@ def train(cfg: dict, category: str, defect_type: str):
                 loss = F.mse_loss(model_pred.float(), noise.float(), reduction="mean")
 
                 accelerator.backward(loss)
-                if accelerator.sync_gradients:
+                if accelerator.sync_gradients:  #True only on the step where the accumulation cycle completes
                     accelerator.clip_grad_norm_(unet.parameters(), 1.0)
                 optimizer.step()
                 lr_scheduler.step()
                 optimizer.zero_grad()
 
-            ##  Logging and checkpoints (once per gradient sync)
-            if accelerator.sync_gradients:
+            ##  Logging and checkpoint (once per gradient sync)
+            if accelerator.sync_gradients:  
                 progress_bar.update(1)
                 global_step += 1
 
