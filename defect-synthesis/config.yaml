@@ -2,7 +2,8 @@
 seed: 42
 
 # Model 
-model_id: "runwayml/stable-diffusion-v1-5"
+#model_id: "runwayml/stable-diffusion-v1-5" deprecated
+model_id: "stable-diffusion-v1-5/stable-diffusion-v1-5"
 
 # Categories
 categories:
