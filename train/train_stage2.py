@@ -331,8 +331,8 @@ def train(cfg: dict, category: str, defect_type: str):
                                 unet=unwrapped_unet,
                                 torch_dtype=weight_dtype,
                                 safety_checker=None,
-                            ).to(accelerator.device)
-                            val_pipeline.vae = val_pipeline.vae.to(dtype=weight_dtype)
+                            )
+                            val_pipeline = val_pipeline.to(accelerator.device, torch_dtype=weight_dtype)
 
                             # Prompt matches training prompt: [D] alone, no [V]
                             # shows what the defect token has learned in isolation
