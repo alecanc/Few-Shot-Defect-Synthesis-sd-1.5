@@ -115,7 +115,9 @@ def load_composed_pipeline(
     # Activate both adapters simultaneously with independent scaling weights.
     # PEFT's set_adapter with a list enables multi-adapter mode.
     # pipe.unet.set_adapter(["identity", "defect"])                deleted to test, caused error
-    pipe.unet.active_adapters = ["identity", "defect"]
+    active = pipe.unet.active_adapters
+    active.clear()
+    active.extend(["identity", "defect"])
 
     # Apply the scaling weights.
     # set_scale multiplies each adapter's LoRA output by the given factor
