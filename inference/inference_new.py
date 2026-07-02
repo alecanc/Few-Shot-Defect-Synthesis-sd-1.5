@@ -1,5 +1,7 @@
 """
-inference.py — Composed [V]+[D] inference for defect image synthesis.
+inference.py  
+
+Composed [V]+[D] inference for defect image synthesis
 
 Loads the Stage 1 adapter ([V], product identity) and the Stage 2 adapter
 ([D], defect appearance) simultaneously on SD 1.5 and generates images with
@@ -9,8 +11,7 @@ the composed prompt:
 
 The two LoRA adapters are loaded as named PEFT adapters and composed via
 linear delta addition with independent scaling weights (adapter_weight_V and
-adapter_weight_D from config.yaml). This follows the multi-concept
-composition approach of Kumari et al. (Multi-Concept Customization, CVPR 2023).
+adapter_weight_D from config.yaml)
 
 Usage:
     python inference/inference.py \
@@ -24,11 +25,11 @@ Usage:
 
     --stage1_dir and --stage2_dir override config.yaml paths entirely.
     --weight_v and --weight_d override config.yaml inference weights.
-    All four are optional — if omitted, config.yaml values are used.
+    All four are optional, if omitted config.yaml values are used.
 
 Output:
     {generated}/{category}_{defect_type}_composed_{n}images.png
-    A 4-column grid of num_images_per_prompt generated images.
+    A 4-column grid of num_images_per_prompt generated images
 """
 
 import argparse
@@ -44,18 +45,18 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ----------------------------------------------------------------------------
 # Config
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 def load_config(path: str) -> dict:
     with open(path) as f:
         return yaml.safe_load(f)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Adapter loading
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 def load_composed_pipeline(
     model_id: str,
@@ -72,13 +73,6 @@ def load_composed_pipeline(
         The UNet weight update is the linear sum of both adapter deltas,
         each scaled by its own weight:
             delta_W = weight_V * delta_W_V + weight_D * delta_W_D
-
-        weight_V=1.0, weight_D=0.8 follows the config defaults, which
-        slightly down-weights the defect signal relative to product identity
-        to prevent the defect from overriding the product geometry.
-
-    The VAE is kept in float32 for decode stability (diffusers 0.29 behaviour).
-    The UNet and text encoder run in float16.
 
     Args:
         model_id:   HuggingFace model ID for SD 1.5
@@ -99,7 +93,7 @@ def load_composed_pipeline(
     ).to(device)
     pipe.set_progress_bar_config(disable=False)
 
-    # Load Stage 1 adapter as "identity" — product appearance [V]
+    # Load Stage 1 adapter as "identity" - product appearance [V]
     print(f"Loading Stage 1 adapter ([V]): {stage1_dir}")
     pipe.unet = PeftModel.from_pretrained(
         pipe.unet,
@@ -107,7 +101,7 @@ def load_composed_pipeline(
         adapter_name="identity",
     )
 
-    # Load Stage 2 adapter as "defect" — defect appearance [D]
+    # Load Stage 2 adapter as "defect" - defect appearance [D]
     # load_adapter attaches a second named adapter without replacing the first
     print(f"Loading Stage 2 adapter ([D]): {stage2_dir}")
     pipe.unet.load_adapter(str(stage2_dir), adapter_name="defect")
@@ -136,9 +130,9 @@ def load_composed_pipeline(
     return pipe
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Image grid
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 def make_grid(images: list, n_cols: int = 4) -> Image.Image:
     """Assemble a list of PIL images into a rectangular grid."""
@@ -150,9 +144,9 @@ def make_grid(images: list, n_cols: int = 4) -> Image.Image:
     return grid
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Main generation
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 def generate(
     cfg: dict,
@@ -181,8 +175,8 @@ def generate(
                 f"*.safetensors file: {path}"
             )
 
-    # Composed prompt — both tokens in a single natural-language description.
-    # Template from project proposal:
+    # Composed prompt - both tokens in a single natural-language description
+    
     # "a photo of a {token_V} {category} with a {token_D} defect on the surface"
     token_V = cfg["token_V"]
     token_D = cfg["token_D"]
@@ -226,7 +220,7 @@ def generate(
 
     # Save grid
     grid     = make_grid(images, n_cols=4)
-    out_name = f"{category}_{defect_type}_composed_{n_images}imgs.png"
+    out_name = f"{category}_{defect_type}-V{str(weight_V).replace('.', '')}_D{str(weight_D).replace('.', '')}-{n_images}imgs.png"
     out_path = out_dir / out_name
     grid.save(out_path)
     print(f"\nGrid saved: {out_path}")
@@ -246,9 +240,9 @@ def generate(
     return out_path
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Entry point
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 def main():
     parser = argparse.ArgumentParser(
