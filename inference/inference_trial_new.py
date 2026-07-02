@@ -130,8 +130,8 @@ def load_composed_pipeline(
     # Cast UNet to fp16 explicitly after PEFT operations
     pipe.unet = pipe.unet.to(dtype=torch.float16)
 
-    # VAE stays in float32 — diffusers 0.29 upcasts latents before decode
-    pipe.vae = pipe.vae.to(dtype=torch.float32)
+    # fix type mismatch error
+    pipe.vae = pipe.vae.to(dtype=torch.float16)
 
     return pipe
 
