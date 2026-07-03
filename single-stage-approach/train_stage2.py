@@ -40,8 +40,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from data.dataset_stage2 import Stage2Dataset, collate_fn_stage2
+sys.path.insert(0, str(Path(__file__).parent))
+from dataset_stage2 import Stage2Dataset, collate_fn_stage2
 
 
 ## Helpers
