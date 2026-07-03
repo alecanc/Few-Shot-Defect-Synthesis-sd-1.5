@@ -156,6 +156,7 @@ def generate(
     stage2_dir: Path,
     weight_V: float,
     weight_D: float,
+    prompt_override: str = None,
 ):
     inf_cfg   = cfg["inference"]
     paths_cfg = cfg["paths"]
@@ -175,15 +176,18 @@ def generate(
                 f"*.safetensors file: {path}"
             )
 
-    # Composed prompt - both tokens in a single natural-language description
+    # Composed prompt: both tokens in a single natural-language description
     
-    # "a photo of a {token_V} {category} with a {token_D} defect on the surface"
-    token_V = cfg["token_V"]
-    token_D = cfg["token_D"]
-    prompt  = (
-        f"a photo of a {token_V} {category} "
-        f"with a {token_D} defect on the surface"
-    )
+    if prompt_override is not None:
+        prompt = prompt_override
+    else:
+        # "a photo of a {token_V} {category} with a {token_D} defect on the surface"
+        token_V = cfg["token_V"]
+        token_D = cfg["token_D"]
+        prompt  = (
+            f"a photo of a {token_V} {category} "
+            f"with a {token_D} defect on the surface"
+        )
 
     print(f"\n{'='*60}")
     print(f"  Inference: {category} / {defect_type}")
@@ -269,6 +273,8 @@ def main():
                         help="[V] adapter scaling weight (default: config inference.adapter_weight_V)")
     parser.add_argument("--weight_d",    type=float, default=None,
                         help="[D] adapter scaling weight (default: config inference.adapter_weight_D)")
+    parser.add_argument("--prompt", default=None,
+                    help="Override the composed prompt entirely. If not set, uses the default template.")
 
     args = parser.parse_args()
     cfg  = load_config(args.config)
@@ -298,6 +304,7 @@ def main():
         stage2_dir=stage2_dir,
         weight_V=weight_V,
         weight_D=weight_D,
+        prompt_override=args.prompt,
     )
 
 
