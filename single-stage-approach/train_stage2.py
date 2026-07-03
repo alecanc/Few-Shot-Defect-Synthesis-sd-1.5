@@ -1,11 +1,12 @@
 """
-train_stage2.py - Stage 2 unified : LoRA fine-tuning for the [D] defect-appearance token and [V] product-identity token
+train_stage2.py - Stage 2: LoRA fine-tuning for the [D] defect-appearance token
 
 Trains an independent LoRA adapter on top of vanilla SD 1.5
+The [D] token binds defect appearance from a fixed set of defective images of a single defect type.
 
 Characteristics:
   - No prior preservation loss, plain MSE on the full batch every step
-  - Reads from cfg["stage2"]
+  - Reads from cfg["stage2"] hyperparameters (lr=5e-5, max_steps=400)
   - Takes --defect_type in addition to --category
   - Checkpoint path: checkpoints/stage2/{category}/{defect_type}/
   - Validation prompt uses token_D
@@ -127,17 +128,23 @@ def train(cfg: dict, category: str, defect_type: str):
 
     ##  Wandb
     if accelerator.is_main_process:
-        run_name = f"stage2_{category}_{defect_type}_rank{stage_cfg['lora_rank']}"
+        run_name = f"stage2joint_{category}_{defect_type}_rank{stage_cfg['lora_rank']}"
+        combined_prompt = f"a photo of a {cfg['token_V']} {category} with a {cfg['token_D']} defect"
+        run_tags = list(cfg["wandb"]["tags"]) + ["single-stage-joint"]
         accelerator.init_trackers(
             project_name=cfg["wandb"]["project"],
             config={
-                "category":    category,
-                "defect_type": defect_type,
-                "stage":       2,
-                "token_D":     cfg["token_D"],
+                "category":      category,
+                "defect_type":   defect_type,
+                "stage":         2,
+                "mode":          "single_stage_joint",
+                "token_V":       cfg["token_V"],
+                "token_D":       cfg["token_D"],
+                "prompt":        combined_prompt,
+                "include_clean": stage_cfg.get("include_clean", False),
                 **stage_cfg,
             },
-            init_kwargs={"wandb": {"name": run_name, "tags": cfg["wandb"]["tags"]}},
+            init_kwargs={"wandb": {"name": run_name, "tags": run_tags}},
         )
         print(f"\n{'='*60}")
         print(f"  Stage 2 - {category.upper()} / {defect_type}")
