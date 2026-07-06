@@ -6,7 +6,7 @@ torchvision==0.17.2
 diffusers==0.27.2
 transformers==4.40.0
 accelerate==0.29.3
-peft==0.10.0
+peft>=0.17.0
 
 # HuggingFace
 huggingface-hub==0.22.2
