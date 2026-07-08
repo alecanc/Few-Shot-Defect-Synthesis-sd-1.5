@@ -367,6 +367,56 @@ def resolve_condition_dirs(
     real is returned as a list of Paths since eval images may need to be
     staged into a temp folder for clean-fid (which wants a folder path).
     """
+    if condition == "cross_reference":
+        parts = defect_type.split("_", 1)
+        cat_d = parts[0]
+        def_d = parts[1]
+        fake_dir = generated_root / "cross_reference" / f"{category}_{defect_type}"
+        split_path = mvtec_root.parent / "splits" / f"{cat_d}_split.json"
+        if not split_path.exists():
+            split_path = Path("/kaggle/working/splits") / f"{cat_d}_split.json"
+        import json
+        with open(split_path) as f:
+            split_d = json.load(f)
+        real_paths = [Path(p) for p in split_d["eval"].get(def_d, [])]
+        return real_paths, fake_dir
+
+    if condition in ("sweep_prompt", "sweep-prompt"):
+        cat_variants = [category, category.replace("_", "-")]
+        def_variants = [defect_type, defect_type.replace("_", "-")] if defect_type else [None]
+        fake_dir = None
+        for cv in cat_variants:
+            for dv in def_variants:
+                for prefix in ["prompt_sweep", "prompt-sweep"]:
+                    p = generated_root / "inference-results" / f"{prefix}_{cv}_{dv}"
+                    if p.exists():
+                        fake_dir = p
+                        break
+                if fake_dir: break
+            if fake_dir: break
+        if not fake_dir:
+            fake_dir = generated_root / "sweep_prompt" / category / defect_type
+        real_paths = [Path(p) for p in split["eval"].get(defect_type, [])] if defect_type is not None else []
+        return real_paths, fake_dir
+
+    if condition in ("sweep_weight", "sweep-weight"):
+        cat_variants = [category, category.replace("_", "-")]
+        def_variants = [defect_type, defect_type.replace("_", "-")] if defect_type else [None]
+        fake_dir = None
+        for cv in cat_variants:
+            for dv in def_variants:
+                for prefix in ["weight_sweep", "weight-sweep"]:
+                    p = generated_root / "inference-results" / f"{prefix}_{cv}_{dv}"
+                    if p.exists():
+                        fake_dir = p
+                        break
+                if fake_dir: break
+            if fake_dir: break
+        if not fake_dir:
+            fake_dir = generated_root / "sweep_weight" / category / defect_type
+        real_paths = [Path(p) for p in split["eval"].get(defect_type, [])] if defect_type is not None else []
+        return real_paths, fake_dir
+
     # Normalize condition names to check both with and without underscores/hyphens
     condition_variants = [condition]
     if "_" in condition:
@@ -389,17 +439,17 @@ def resolve_condition_dirs(
 
     fake_dir = None
     for cond_var in condition_variants:
-        fake_base = generated_root / cond_var / category / defect_type
+        fake_base = generated_root / cond_var / category / defect_type if defect_type is not None else generated_root / cond_var / category
         if not fake_base.exists() and cond_var == "stage1_only":
             fake_base = generated_root / cond_var / category
 
         # Fallbacks for baseline_single or single1
         if not fake_base.exists() and cond_var in ("single1", "single_stage1", "singlestage1"):
-            fb_alt = generated_root / "baseline_single" / category / defect_type
+            fb_alt = generated_root / "baseline_single" / category / defect_type if defect_type is not None else generated_root / "baseline_single" / category
             if fb_alt.exists():
                 fake_base = fb_alt
             else:
-                fb_alt = generated_root / "singlestage" / category / defect_type
+                fb_alt = generated_root / "singlestage" / category / defect_type if defect_type is not None else generated_root / "singlestage" / category
                 if fb_alt.exists():
                     fake_base = fb_alt
 
@@ -418,7 +468,7 @@ def resolve_condition_dirs(
 
     # If none of the variants exist, just default to the original structure
     if fake_dir is None:
-        fake_base = generated_root / condition / category / defect_type
+        fake_base = generated_root / condition / category / defect_type if defect_type is not None else generated_root / condition / category
         if condition == "stage1_only":
             fake_dir = generated_root / condition / category
         else:
@@ -434,8 +484,8 @@ def resolve_condition_dirs(
         real_paths = list_images(good_dir)
         return real_paths, fake_dir
     else:
-        real_paths = [Path(p) for p in split["eval"].get(defect_type, [])]
-        if not real_paths:
+        real_paths = [Path(p) for p in split["eval"].get(defect_type, [])] if defect_type is not None else []
+        if not real_paths and defect_type is not None:
             raise ValueError(
                 f"No real eval images for {category}/{defect_type}."
             )
@@ -623,7 +673,12 @@ def main():
         for defect_type in defect_types:
             cond_paths_dict = {}
             try:
-                real_paths = [Path(p) for p in split["eval"].get(defect_type, [])]
+                if "cross_reference" in args.conditions:
+                    real_paths, _ = resolve_condition_dirs(
+                        generated_root, mvtec_root, category, defect_type, split, "cross_reference", args.shots_tag
+                    )
+                else:
+                    real_paths = [Path(p) for p in split["eval"].get(defect_type, [])]
                 real_paths = real_paths[:args.n_images] if args.n_images else real_paths
                 cond_paths_dict["real"] = real_paths
             except Exception:
