@@ -167,7 +167,7 @@ http://creativecommons.org/licenses/by-nc-sa/4.0/
 Commercial use is not allowed. For use that falls under the commercial use clause, contact
 MVTec directly. The dataset is not redistributed here.
 
-If you use the dataset in scientific work, the authors ask you to cite:
+Citations:
 
 > Paul Bergmann, Michael Fauser, David Sattlegger, and Carsten Steger,
 > "A Comprehensive Real-World Dataset for Unsupervised Anomaly Detection",
@@ -179,13 +179,9 @@ The base model is `stable-diffusion-v1-5/stable-diffusion-v1-5`, released under 
 CreativeML OpenRAIL-M license. Full text:
 https://huggingface.co/spaces/CompVis/stable-diffusion-license
 
-Three points from that license matter here:
 
 - The model is intended for research purposes only.
-- No rights are claimed on the images you generate. You are free to use them, and you are
-  accountable for their use, which must not break the use restrictions in the license.
-- If you redistribute the weights or anything derived from them, you must include the same
-  use restrictions and give a copy of the license to your users.
+- No rights are claimed on the generated images.
 
 ### Generated images and LoRA adapters
 
