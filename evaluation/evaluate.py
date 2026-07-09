@@ -225,11 +225,11 @@ def save_diff_heatmap(img_path: Path, ref_path: Path, output_path: Path):
     img_arr = np.array(img).astype(np.float32)
     ref_arr = np.array(ref).astype(np.float32)
     
-    # Compute absolute difference and take mean across channels
+
     diff = np.abs(img_arr - ref_arr)
     diff_gray = np.mean(diff, axis=2)
     
-    # Normalize to [0, 255]
+   
     diff_min, diff_max = diff_gray.min(), diff_gray.max()
     if diff_max > diff_min:
         diff_norm = (diff_gray - diff_min) / (diff_max - diff_min) * 255.0
@@ -237,9 +237,9 @@ def save_diff_heatmap(img_path: Path, ref_path: Path, output_path: Path):
         diff_norm = diff_gray
     diff_norm = diff_norm.astype(np.uint8)
     
-    # Create red-highlight heatmap
+   
     heatmap = np.zeros_like(img_arr, dtype=np.uint8)
-    heatmap[..., 0] = diff_norm  # Red channel represents intensity of difference
+    heatmap[..., 0] = diff_norm  
     
     blended = (img_arr * 0.7 + heatmap * 0.3).astype(np.uint8)
     
@@ -417,7 +417,6 @@ def resolve_condition_dirs(
         real_paths = [Path(p) for p in split["eval"].get(defect_type, [])] if defect_type is not None else []
         return real_paths, fake_dir
 
-    # Normalize condition names to check both with and without underscores/hyphens
     condition_variants = [condition]
     if "_" in condition:
         condition_variants.append(condition.replace("_", ""))
@@ -443,7 +442,7 @@ def resolve_condition_dirs(
         if not fake_base.exists() and cond_var == "stage1_only":
             fake_base = generated_root / cond_var / category
 
-        # Fallbacks for baseline_single or single1
+        
         if not fake_base.exists() and cond_var in ("single1", "single_stage1", "singlestage1"):
             fb_alt = generated_root / "baseline_single" / category / defect_type if defect_type is not None else generated_root / "baseline_single" / category
             if fb_alt.exists():
@@ -466,7 +465,6 @@ def resolve_condition_dirs(
             fake_dir = trial_dir
             break
 
-    # If none of the variants exist, just default to the original structure
     if fake_dir is None:
         fake_base = generated_root / condition / category / defect_type if defect_type is not None else generated_root / condition / category
         if condition == "stage1_only":

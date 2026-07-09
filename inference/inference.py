@@ -20,9 +20,6 @@ Usage:
 
     # Zero-shot baseline (no LoRA applied):
     python inference.py --config config.yaml --category bottle --defect_type broken_large --zero_shot
-
-    # Single-stage baseline (LoRA trained directly on defects, skipping Stage 1):
-    python inference.py --config config.yaml --category bottle --defect_type broken_large --single_stage
 """
 
 import argparse
@@ -84,7 +81,6 @@ def add_caption(image: Image.Image, text: str,
     return new_img
 
 
-# Pipeline builders 
 def build_two_stage_pipeline(cfg: dict, category: str, defect_type: str,
                               n_shots: int | None = None) -> StableDiffusionPipeline:
     """Load SD 1.5 with Stage 1 + Stage 2 adapters."""
@@ -136,25 +132,6 @@ def build_zero_shot_pipeline(cfg: dict) -> StableDiffusionPipeline:
     ).to("cuda")
 
 
-def build_single_stage_pipeline(cfg: dict, category: str,
-                                 defect_type: str) -> StableDiffusionPipeline:
-    """
-    single-stage Baseline: 
-    """
-    path = (Path(cfg["paths"]["checkpoints"])
-            / "baseline_single" / category / defect_type / "final")
-    if not path.exists():
-        raise FileNotFoundError(f"Single-stage adapter not found: {path}")
-    pipe = StableDiffusionPipeline.from_pretrained(
-        cfg["model_id"], torch_dtype=torch.float16, safety_checker=None
-    ).to("cuda")
-    pipe.load_lora_weights(str(path), adapter_name="single")
-    pipe.set_adapters(["single"], adapter_weights=[1.0])
-    return pipe
-
-
-# Prompt builders 
-
 def make_prompt(cfg: dict, category: str, defect_type: str, mode: str) -> str:
     V = cfg["token_V"]   # sks
     D = cfg["token_D"]   # xjy
@@ -162,12 +139,10 @@ def make_prompt(cfg: dict, category: str, defect_type: str, mode: str) -> str:
         "two_stage":    f"a photo of a {V} {category} with a {D} {defect_type} defect",
         "stage1_only":  f"a photo of a {V} {category}",
         "zero_shot":    f"a photo of a {category} with a {defect_type} defect on the surface",
-        "single_stage": f"a photo of a {category} with a {D} {defect_type} defect",
     }
     return prompts[mode]
 
 
-# Core generation function 
 
 def generate_run(
     pipe: StableDiffusionPipeline,
@@ -200,14 +175,13 @@ def generate_run(
     ).images
     elapsed = time.time() - t0
 
-    # Save single images
     saved_paths = []
     for i, img in enumerate(images):
         p = output_dir / f"gen_{i:03d}.png"
         img.save(p)
         saved_paths.append(str(p))
 
-    # Save grid with caption
+   
     grid = make_grid(images, ncols=ncols_grid)
     caption_text = f"{prompt[:90]}{'...' if len(prompt) > 90 else ''}"
     grid_captioned = add_caption(grid, caption_text)
@@ -233,7 +207,7 @@ def run_inference(
     category: str,
     defect_type: str | None = None,
     n_shots: int | None = None,
-    mode: str = "two_stage",   # "two_stage" | "stage1_only" | "zero_shot" | "single_stage"
+    mode: str = "two_stage",   # "two_stage" | "stage1_only" | "zero_shot"
 ) -> None:
     """Execute a single inference run and saves output + metadata."""
 
@@ -252,7 +226,7 @@ def run_inference(
     print(f"  Prompt : {prompt}")
     print(f"  Output : {out_dir}")
 
-    # Build pipeline
+    
     try:
         if mode == "two_stage":
             pipe = build_two_stage_pipeline(cfg, category, defect_type, n_shots)
@@ -260,18 +234,16 @@ def run_inference(
             pipe = build_stage1_only_pipeline(cfg, category)
         elif mode == "zero_shot":
             pipe = build_zero_shot_pipeline(cfg)
-        elif mode == "single_stage":
-            pipe = build_single_stage_pipeline(cfg, category, defect_type)
         else:
             raise ValueError(f"{mode}")
     except FileNotFoundError as e:
         print(f"  SKIP — {e}")
         return
 
-    # Generate
+   
     stats = generate_run(pipe, prompt, out_dir, cfg)
 
-    # Metadata
+    
     metadata = {
         "timestamp": datetime.now().isoformat(),
         "mode": mode,
@@ -290,7 +262,7 @@ def run_inference(
 
     print(f"{stats['num_images']} images in {stats['generation_time_s']:.1f}s {out_dir}")
 
-    # Cleanup VRAM
+    
     del pipe
     torch.cuda.empty_cache()
 
@@ -312,7 +284,7 @@ def get_defect_types(cfg: dict, category: str, split_dir: Path) -> list[str]:
     return sorted(d.name for d in test_dir.iterdir() if d.is_dir() and d.name != "good")
 
 
-# Main
+
 def main():
     parser = argparse.ArgumentParser(description="Inference — generates synthetic images")
     parser.add_argument("--config", default="config.yaml")
@@ -323,7 +295,7 @@ def main():
     parser.add_argument("--ablation", action="store_true",
                         help="Executes for all values of n_shots defined in config.")
     parser.add_argument("--mode", default="two_stage",
-                        choices=["two_stage", "stage1_only", "zero_shot", "single_stage"],
+                        choices=["two_stage", "stage1_only", "zero_shot"],
                         help="Generation mode.")
     parser.add_argument("--all_modes", action="store_true",
                         help="Executes all modes.")
@@ -333,7 +305,7 @@ def main():
     split_dir = Path(cfg["paths"]["splits_dir"])
 
     categories = [args.category] if args.category else cfg["categories"]
-    modes = (["two_stage", "stage1_only", "zero_shot", "single_stage"]
+    modes = (["two_stage", "stage1_only", "zero_shot"]
              if args.all_modes else [args.mode])
 
     for mode in modes:
