@@ -1,12 +1,13 @@
 """
-train_stage2.py - Stage 2: LoRA fine-tuning for the [D] defect-appearance token
+train_stage2.py - single-stage unified: LoRA fine-tuning for [D] defect-appearance token and [V] product-identity token
 
 Trains an independent LoRA adapter on top of vanilla SD 1.5
 The [D] token binds defect appearance from a fixed set of defective images of a single defect type.
+The [V] token binds product identity from a fixed set of images of a single product type.
 
 Characteristics:
   - No prior preservation loss, plain MSE on the full batch every step
-  - Reads from cfg["stage2"] hyperparameters (lr=5e-5, max_steps=400)
+  - Reads from cfg["stage2"] hyperparameters
   - Takes --defect_type in addition to --category
   - Checkpoint path: checkpoints/stage2/{category}/{defect_type}/
   - Validation prompt uses token_D

@@ -29,12 +29,12 @@ splits:
   stage1_n_images: 25        # clean imgs for Stage 1
   stage2_n_per_type: 15      # defect imgs per type for Stage 2
 
-# Stage 1 — DreamBooth + LoRA for [V] 
+# Stage 1: DreamBooth + LoRA for [V] 
 stage1:
   # Template prompt: "a photo of a {token_V} {category}"
   # Prior prompt:    "a photo of a {category}"
 
-  lora_rank: 4               # rank r — we will try 8 if underfitting
+  lora_rank: 4               # rank r, we will try 8 if underfitting
   lora_alpha: 32             # scaling: alpha/rank = 8 
   target_modules:            # layers 
     - "to_q"
@@ -60,7 +60,7 @@ stage1:
   validation_steps: 200      # generate validation samples every N steps
   num_validation_images: 4   # images generated for validation
 
-# Stage 2 — LoRA for [D]
+# Stage 2: LoRA for [D]
 stage2:
   lora_rank: 4              # a bit conservative, we will try 8 if underfitting
   lora_alpha: 32            # scaling: alpha/rank = 8 a bit high since we got few-shot, but risks overfitting 
@@ -87,8 +87,8 @@ stage2:
 inference:
   num_inference_steps: 30
   guidance_scale: 7.5
-  adapter_weight_V: 1.0      # Stage 1 adapter weight (to explore : 0.8–1.0)
-  adapter_weight_D: 0.8      # Stage 2 adapter weight (to explore: 0.6–1.0)
+  adapter_weight_V: 1.0      # Stage 1 adapter weight
+  adapter_weight_D: 0.8      # Stage 2 adapter weight 
   num_images_per_prompt: 8   # images generated per prompt
 
 # Wandb 

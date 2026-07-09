@@ -1,5 +1,5 @@
 """
-dataset_stage2.py - PyTorch Dataset for unified Stage 2 ([D] token, defect concept)
+dataset_stage2.py - PyTorch Dataset for unified Stage ([D] token, defect concept and [V] token, product concept) LoRA fine-tuning
 
 The prompt is f"a photo of a {token_V} {self.category} with a {token_D} defect"
 
@@ -108,7 +108,7 @@ def build_transform_stage2(
 
 class Stage2Dataset(Dataset):
     """
-    Dataset for Stage 2: binds defect appearance to the [D] token via LoRA.
+    Dataset for Stage unified
 
     Operating modes (controlled by `defect_type`):
 
