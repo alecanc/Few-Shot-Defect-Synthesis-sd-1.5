@@ -124,8 +124,8 @@ python single-stage-approach/train_stage2.py --config config.yaml \
 LoRA is applied to the query, key, value and output projection layers of the UNet attention
 blocks. The VAE and the text encoder stay frozen.
 
-Two practical notes. The training loss is noisy and does not track visual quality, so pick
-the checkpoint by looking at the validation images, not at the loss curve. Single-stage
+Training practical note. The training loss is noisy and does not track visual quality,
+the checkpoint are better picked by looking at the validation images, not at the loss curve. Single-stage
 adapters can start showing bright artifacts between step 400 and 500, so the earlier
 checkpoint is sometimes better.
 
@@ -139,22 +139,62 @@ Runs are logged to Weights and Biases, project `defect-synthesis`:
 
 ## Dataset
 
+## Dataset
+
 We use three categories of MVTec AD: `bottle`, `metal_nut` and `leather`. For each category
 we take 25 clean images for Stage 1, and 15 defective images per defect type for Stage 2 and
 for the single-stage runs. The remaining defective images are held out for evaluation. All
 splits use seed 42, and images are resized to 512x512.
 
-MVTec AD is released under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0
-International License (CC BY-NC-SA 4.0)**. It cannot be used for commercial purposes. The
-dataset is not included in this repository and must be downloaded from the official page.
-If you use it, cite the two papers below.
+The dataset is not included in this repository. Download it from the official page:
+https://www.mvtec.com/company/research/datasets/mvtec-ad
 
-Stable Diffusion 1.5 is distributed under the CreativeML OpenRAIL-M license. Its use
-restrictions apply to any images generated with this code.
+## License and attribution
 
-This repository contains code only, written for a university course project. It is not
-intended for commercial use.
+This is a university course project. It is not intended for commercial use.
 
+### Code
+
+The code in this repository is released for academic use. The restrictions of the dataset
+and of the base model, described below, apply to anything produced with it.
+
+### MVTec AD
+
+Copyright 2019 MVTec Software GmbH. MVTec AD is licensed under a Creative Commons
+Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0):
+http://creativecommons.org/licenses/by-nc-sa/4.0/
+
+Commercial use is not allowed. For use that falls under the commercial use clause, contact
+MVTec directly. The dataset is not redistributed here.
+
+If you use the dataset in scientific work, the authors ask you to cite:
+
+> Paul Bergmann, Michael Fauser, David Sattlegger, and Carsten Steger,
+> "A Comprehensive Real-World Dataset for Unsupervised Anomaly Detection",
+> IEEE Conference on Computer Vision and Pattern Recognition, 2019.
+
+### Stable Diffusion 1.5
+
+The base model is `stable-diffusion-v1-5/stable-diffusion-v1-5`, released under the
+CreativeML OpenRAIL-M license. Full text:
+https://huggingface.co/spaces/CompVis/stable-diffusion-license
+
+Three points from that license matter here:
+
+- The model is intended for research purposes only.
+- No rights are claimed on the images you generate. You are free to use them, and you are
+  accountable for their use, which must not break the use restrictions in the license.
+- If you redistribute the weights or anything derived from them, you must include the same
+  use restrictions and give a copy of the license to your users.
+
+### Generated images and LoRA adapters
+
+The adapters in this project are derived from the Stable Diffusion 1.5 weights, so the
+CreativeML OpenRAIL-M use restrictions follow them.
+
+The generated images were produced by a model fine-tuned on MVTec AD. To stay on the safe
+side of the ShareAlike clause, any generated images we publish are released under the same
+CC BY-NC-SA 4.0 license, for non-commercial academic use only.
 ## References
 
 Dataset: https://www.mvtec.com/company/research/datasets/mvtec-ad
