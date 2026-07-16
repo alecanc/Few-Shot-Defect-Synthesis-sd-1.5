@@ -41,7 +41,7 @@ four metrics. Two failures remain in every configuration:
   training distribution of Stable Diffusion 1.5
 - `leather/color`: the hue shift is too subtle to produce a useful training signal
 
-Full analysis is in the report.
+Full analysis is in the [report](report-Few_shot_Personalization.pdf).
 
 ## Repository structure
 ```
@@ -73,6 +73,8 @@ notebook/                        Kaggle notebooks
   05_evaluation.ipynb
 
 README.md                        project documentation
+
+report-Few_shot_Personalization.pdf       report of the work, IEEE format
 ```
 ## Setup
 
@@ -139,8 +141,6 @@ Runs are logged to Weights and Biases, project `defect-synthesis`:
 
 ## Dataset
 
-## Dataset
-
 We use three categories of MVTec AD: `bottle`, `metal_nut` and `leather`. For each category
 we take 25 clean images for Stage 1, and 15 defective images per defect type for Stage 2 and
 for the single-stage runs. The remaining defective images are held out for evaluation. All
@@ -155,8 +155,8 @@ This is a university course project. It is not intended for commercial use.
 
 ### Code
 
-The code in this repository is released for academic use. The restrictions of the dataset
-and of the base model, described below, apply to anything produced with it.
+The code is provided for academic and educational use. The restrictions of the dataset and
+of the base model, described below, apply to anything produced with it.
 
 ### MVTec AD
 
@@ -181,19 +181,21 @@ https://huggingface.co/spaces/CompVis/stable-diffusion-license
 
 
 - The model is intended for research purposes only.
-- No rights are claimed on the generated images.
+- No rights are claimed on the generated images. You are free to use them, and you are
+  accountable for their use, which must not break the use restrictions in the license.
 
 ### Generated images and LoRA adapters
 
-The adapters in this project are derived from the Stable Diffusion 1.5 weights, so the
-CreativeML OpenRAIL-M use restrictions follow them.
+The generated images shown in the report were produced by Stable Diffusion 1.5 fine-tuned on MVTec AD.
+They are for academic illustration only, non-commercial. The trained adapters are not
+published in this repository. 
+If you need them feel free to concat the authors.
 
 The generated images were produced by a model fine-tuned on MVTec AD. To stay on the safe
 side of the ShareAlike clause, any generated images we publish are released under the same
 CC BY-NC-SA 4.0 license, for non-commercial academic use only.
-## References
 
-Dataset: https://www.mvtec.com/company/research/datasets/mvtec-ad
+## References
 
 1. Bergmann, P., Fauser, M., Sattlegger, D., Steger, C. *MVTec AD: A Comprehensive
    Real-World Dataset for Unsupervised Anomaly Detection.* CVPR 2019.
